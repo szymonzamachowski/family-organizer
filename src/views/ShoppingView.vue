@@ -1,10 +1,34 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { supabase } from '../supabase'
 
 const items = ref([])
 const loading = ref(true)
 const newItemName = ref('')
+const newItemCategory = ref('Inne')
+
+const categories = [
+  'Pieczywo',
+  'Mięso', 
+  'Nabiał', 
+  'Owoce/Warzywa', 
+  'Chemia', 
+  'Inne'
+]
+
+// Group items by category
+const groupedItems = computed(() => {
+  const groups = {}
+  categories.forEach(cat => groups[cat] = [])
+  
+  items.value.forEach(item => {
+    const cat = item.category || 'Inne'
+    if (!groups[cat]) groups[cat] = []
+    groups[cat].push(item)
+  })
+  
+  return groups
+})
 
 const fetchItems = async () => {
   loading.value = true
@@ -25,6 +49,7 @@ const addItem = async () => {
     .from('shopping_list')
     .insert([{
       name: newItemName.value.trim(),
+      category: newItemCategory.value,
       is_bought: false
     }])
 
@@ -33,6 +58,7 @@ const addItem = async () => {
     console.error(error)
   } else {
     newItemName.value = ''
+    // Keep category or reset? Keeping might be nice for bulk adding.
   }
 }
 
@@ -97,16 +123,23 @@ onUnmounted(() => {
     </header>
 
     <!-- Add Form -->
-    <div class="card mb-6 add-form flex gap-2">
-      <input 
-        v-model="newItemName" 
-        @keyup.enter="addItem"
-        placeholder="Co kupić?" 
-        class="flex-1"
-      />
-      <button @click="addItem" class="btn btn-primary" :disabled="!newItemName.trim()">
-        +
-      </button>
+    <div class="card mb-6 add-form">
+      <div class="flex flex-col gap-2">
+        <input 
+          v-model="newItemName" 
+          @keyup.enter="addItem"
+          placeholder="Co kupić?" 
+          class="flex-1 input-field"
+        />
+        <div class="flex gap-2">
+          <select v-model="newItemCategory" class="flex-1 input-field">
+            <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+          </select>
+          <button @click="addItem" class="btn btn-primary" :disabled="!newItemName.trim()">
+            +
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- List -->
@@ -117,27 +150,51 @@ onUnmounted(() => {
         Lista jest pusta.
       </div>
       
-      <div 
-        v-for="item in items" 
-        :key="item.id" 
-        class="card item-row flex items-center justify-between mb-2"
-        :class="{ 'is-bought': item.is_bought }"
-        @click="toggleBought(item)"
-      >
-        <div class="flex items-center gap-3 flex-1">
-          <div class="checkbox" :class="{ checked: item.is_bought }">
-            <span v-if="item.is_bought">✓</span>
+      <div v-else>
+        <template v-for="cat in categories" :key="cat">
+          <div v-if="groupedItems[cat] && groupedItems[cat].length > 0" class="category-block mb-4">
+            <h3 class="category-title mb-2">{{ cat }}</h3>
+            
+            <div 
+              v-for="item in groupedItems[cat]" 
+              :key="item.id" 
+              class="card item-row flex items-center justify-between mb-2"
+              :class="{ 'is-bought': item.is_bought }"
+              @click="toggleBought(item)"
+            >
+              <div class="flex items-center gap-3 flex-1">
+                <div class="checkbox" :class="{ checked: item.is_bought }">
+                  <span v-if="item.is_bought">✓</span>
+                </div>
+                <span class="item-name">{{ item.name }}</span>
+              </div>
+              
+              <button @click.stop="deleteItem(item.id)" class="btn btn-ghost delete-btn">🗑️</button>
+            </div>
           </div>
-          <span class="item-name">{{ item.name }}</span>
-        </div>
-        
-        <button @click.stop="deleteItem(item.id)" class="btn btn-ghost delete-btn">🗑️</button>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.input-field {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.category-title {
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding-left: 0.5rem;
+  border-left: 3px solid var(--color-secondary);
+}
+
 .item-row {
   cursor: pointer;
   padding: 1rem;
@@ -164,6 +221,7 @@ onUnmounted(() => {
   justify-content: center;
   color: white;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .checkbox.checked {

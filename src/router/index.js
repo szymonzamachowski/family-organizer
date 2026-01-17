@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '../stores/user'
 
 // Lazy load views
+const LoginView = () => import('../views/LoginView.vue')
 const RoleSelectionView = () => import('../views/RoleSelectionView.vue')
 const TasksView = () => import('../views/TasksView.vue')
 const ShoppingView = () => import('../views/ShoppingView.vue')
@@ -16,6 +17,11 @@ const router = createRouter({
             path: '/',
             name: 'home',
             redirect: '/tasks'
+        },
+        {
+            path: '/login',
+            name: 'login',
+            component: LoginView
         },
         {
             path: '/welcome',
@@ -58,13 +64,21 @@ const router = createRouter({
 // Navigation Guard
 router.beforeEach((to, from, next) => {
     const userStore = useUserStore()
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
 
-    if (!userStore.currentRole && to.name !== 'welcome') {
+    if (to.name !== 'login' && !isAuthenticated) {
+        next({ name: 'login' })
+    } else if (to.name === 'login' && isAuthenticated) {
         next({ name: 'welcome' })
-    } else if (userStore.currentRole && to.name === 'welcome') {
-        next({ name: 'tasks' })
     } else {
-        next()
+        // Role check
+        if (!userStore.currentRole && to.name !== 'welcome' && to.name !== 'login') {
+            next({ name: 'welcome' })
+        } else if (userStore.currentRole && to.name === 'welcome') {
+            next({ name: 'tasks' })
+        } else {
+            next()
+        }
     }
 })
 

@@ -19,6 +19,13 @@ const newTask = ref({
   deadline: new Date().toISOString().split('T')[0]
 })
 
+const submitOnEnter = (e) => {
+  if (!e.shiftKey) {
+    e.preventDefault()
+    addTask()
+  }
+}
+
 const roles = ['Tata', 'Mama', 'Gosia', 'Szymon']
 
 // Computed
@@ -147,7 +154,13 @@ onUnmounted(() => {
     <!-- Add Form -->
     <div v-if="showAddForm" class="card mb-4 add-form">
       <h3 class="mb-2">Nowe zadanie</h3>
-      <input v-model="newTask.title" placeholder="Co trzeba zrobić?" class="mb-2" />
+      <textarea 
+        v-model="newTask.title" 
+        @keydown.enter="submitOnEnter" 
+        placeholder="Co trzeba zrobić?" 
+        class="mb-2 task-input" 
+        rows="3"
+      ></textarea>
       <div class="flex gap-2 mb-2">
         <select v-model="newTask.assigned_to">
           <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
@@ -227,5 +240,21 @@ onUnmounted(() => {
 .delete-btn {
   padding: 0.5rem;
   margin-left: 0.5rem;
+}
+
+.task-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  resize: vertical;
+}
+
+.task-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
 }
 </style>
