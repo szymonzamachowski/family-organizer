@@ -1,154 +1,176 @@
-/* Base Colors */
-:root {
-  --color-primary: #4f46e5;
-  /* Indigo 600 */
-  --color-primary-light: #818cf8;
-  /* Indigo 400 */
-  --color-primary-dark: #3730a3;
-  /* Indigo 800 */
+/* Modern Design System - Mobile First */
 
+:root {
+  /* HSL Color Palette for easier manipulation */
+  /* Primary: Vibrant Indigo */
+  --primary-h: 245;
+  --primary-s: 85%;
+  --primary-l: 60%;
+  --color-primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
+  --color-primary-light: hsl(var(--primary-h), var(--primary-s), 85%);
+  --color-primary-dark: hsl(var(--primary-h), var(--primary-s), 45%);
+  --color-primary-soft: hsl(var(--primary-h), var(--primary-s), 96%);
+
+  /* Secondary/Accent: Coral/Orange (for warmth) */
+  --color-accent: #ff7e5f;
+
+  /* Neutral Palette (Slate) */
   --color-background: #f8fafc;
-  /* Slate 50 */
   --color-surface: #ffffff;
+  --color-surface-translucent: rgba(255, 255, 255, 0.85);
+  /* Glassmorphism */
 
   --color-text-main: #1e293b;
-  /* Slate 800 */
   --color-text-muted: #64748b;
-  /* Slate 500 */
+  --color-border: #e2e8f0;
 
+  /* Functional */
   --color-success: #10b981;
-  /* Emerald 500 */
   --color-danger: #ef4444;
-  /* Red 500 */
   --color-warning: #f59e0b;
-  /* Amber 500 */
-  --color-background-soft: #f1f5f9;
-  /* Slate 100 */
 
+  /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --shadow-glow: 0 0 15px rgba(79, 70, 229, 0.3);
 
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 1rem;
-  /* Dla kart i kontenerów */
+  /* Radius */
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Fonts */
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
-/* Reset & Scaffolding */
+/* Base */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   margin: 0;
-  position: relative;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  /* Remove mobile highlight */
 }
 
 body {
   min-height: 100vh;
   color: var(--color-text-main);
   background: var(--color-background);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  line-height: 1.5;
-  text-rendering: optimizeLegibility;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  overflow-x: hidden;
 }
 
 /* Typography */
 h1,
 h2,
 h3,
-h4,
-h5,
-h6 {
-  line-height: 1.1;
+h4 {
+  font-family: var(--font-heading);
   font-weight: 700;
   color: var(--color-text-main);
+  line-height: 1.2;
 }
 
 h1 {
   font-size: 2rem;
+  letter-spacing: -0.02em;
 }
 
 h2 {
   font-size: 1.5rem;
+  letter-spacing: -0.01em;
 }
 
 h3 {
   font-size: 1.25rem;
 }
 
-/* Utilities */
+/* Components */
 .container {
   width: 100%;
-  max-width: 640px;
-  /* Mobile focused max-width */
+  max-width: 600px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1.25rem;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.5rem;
   border-radius: var(--radius-lg);
+  font-family: var(--font-heading);
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.1s, background-color 0.2s, box-shadow 0.2s;
   font-size: 1rem;
+  user-select: none;
+}
+
+.btn:active {
+  transform: scale(0.96);
 }
 
 .btn-primary {
-  background-color: var(--color-primary);
+  background: var(--color-primary);
   color: white;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
-.btn-primary:hover {
-  background-color: var(--color-primary-dark);
+.btn-primary:disabled {
+  background: var(--color-text-muted);
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 .btn-ghost {
-  background-color: transparent;
+  background: transparent;
   color: var(--color-text-muted);
-}
-
-.btn-ghost:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: var(--color-text-main);
+  padding: 0.5rem;
 }
 
 .card {
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
   box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   margin-bottom: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Form Elements */
-input[type="text"],
-input[type="date"],
-select {
+/* Input Fields */
+input,
+select,
+textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
+  padding: 0.875rem 1rem;
+  border: 2px solid transparent;
+  background: var(--color-background-soft, #f1f5f9);
   border-radius: var(--radius-lg);
+  font-family: var(--font-body);
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
 }
 
-input[type="text"]:focus,
-input[type="date"]:focus,
-select:focus {
+input:focus,
+select:focus,
+textarea:focus {
+  background: var(--color-surface);
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 4px var(--color-primary-soft);
 }
 
-/* Helper classes */
+/* Utility Classes */
 .flex {
   display: flex;
 }
@@ -173,22 +195,51 @@ select:focus {
   gap: 1rem;
 }
 
-.text-center {
-  text-align: center;
-}
-
 .w-full {
   width: 100%;
 }
 
-.mt-4 {
-  margin-top: 1rem;
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
 }
 
 .mb-4 {
   margin-bottom: 1rem;
 }
 
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
 .p-4 {
   padding: 1rem;
+}
+
+/* Animation Utils */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
 }

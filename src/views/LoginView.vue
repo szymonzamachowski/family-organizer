@@ -21,22 +21,25 @@ const login = () => {
 
 <template>
   <div class="login-container">
-    <div class="card p-6 w-full max-w-sm">
-      <h1 class="text-2xl mb-6 text-center">🔐 Dostęp</h1>
+    <div class="card p-8 w-full max-w-sm shadow-glow text-center fade-in">
+      <div class="mb-6">
+        <h1 class="text-3xl mb-2">🔐</h1>
+        <h2 class="text-xl font-bold">Witaj w domu</h2>
+      </div>
       
       <form @submit.prevent="login" class="flex flex-col gap-4">
         <div>
           <input 
             v-model="password" 
             type="password" 
-            placeholder="Hasło"
-            class="w-full p-3 border rounded text-lg"
+            placeholder="Podaj hasło"
+            class="text-center text-lg"
             autofocus
           />
-          <p v-if="error" class="text-red-500 mt-2 text-sm text-center">{{ error }}</p>
+          <p v-if="error" class="text-danger mt-2 text-sm">{{ error }}</p>
         </div>
         
-        <button type="submit" class="btn btn-primary w-full py-3 text-lg">
+        <button type="submit" class="btn btn-primary w-full py-4 text-lg shadow-lg">
           Wejdź
         </button>
       </form>
@@ -50,18 +53,15 @@ const login = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-background);
-  padding: 1rem;
+  background: linear-gradient(135deg, var(--color-background) 0%, #e0e7ff 100%);
+  padding: 1.5rem;
 }
 
-input {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
+.text-danger {
+  color: var(--color-danger);
 }
 
-input:focus {
-  border-color: var(--color-primary);
-  outline: none;
+.shadow-glow {
+  box-shadow: 0 10px 40px -10px rgba(79, 70, 229, 0.2);
 }
 </style>

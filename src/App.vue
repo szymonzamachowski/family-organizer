@@ -16,16 +16,18 @@ const showNav = computed(() => route.name !== 'welcome' && route.name !== 'home'
   </div>
 </template>
 
-<style scoped>
 .app-layout {
   min-height: 100vh;
+  background-color: var(--color-background);
+  display: flex;
+  flex-direction: column;
 }
 
 .main-content {
-  padding-bottom: 20px;
+  flex: 1;
+  width: 100%;
 }
 
 .main-content.with-nav {
-  padding-bottom: 84px; /* 64px nav + 20px padding */
+  padding-bottom: 100px; /* More space for floating nav */
 }
-</style>

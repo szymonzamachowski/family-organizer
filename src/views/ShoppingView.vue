@@ -6,6 +6,8 @@ const items = ref([])
 const loading = ref(true)
 const newItemName = ref('')
 const newItemCategory = ref('Inne')
+const editingItem = ref(null) // ID of item being edited
+const editName = ref('')
 
 const categories = [
   'Pieczywo',
@@ -63,6 +65,8 @@ const addItem = async () => {
 }
 
 const toggleBought = async (item) => {
+  if (editingItem.value === item.id) return // Don't toggle if editing
+
   const newValue = !item.is_bought
   // Optimistic update
   const originalValue = item.is_bought
@@ -90,6 +94,38 @@ const deleteItem = async (id) => {
   if (error) console.error('Error deleting item:', error)
 }
 
+const startEdit = (item) => {
+  editingItem.value = item.id
+  editName.value = item.name
+}
+
+const saveEdit = async (item) => {
+  if (editingItem.value !== item.id) return
+  if (!editName.value.trim()) {
+    cancelEdit()
+    return
+  }
+
+  const oldName = item.name
+  item.name = editName.value.trim()
+  editingItem.value = null
+
+  const { error } = await supabase
+    .from('shopping_list')
+    .update({ name: item.name })
+    .eq('id', item.id)
+    
+  if (error) {
+    item.name = oldName
+    console.error('Error updating item name:', error)
+  }
+}
+
+const cancelEdit = () => {
+  editingItem.value = null
+  editName.value = ''
+}
+
 // Realtime
 let subscription = null
 
@@ -103,7 +139,13 @@ onMounted(() => {
         items.value.unshift(payload.new)
       } else if (payload.eventType === 'UPDATE') {
         const index = items.value.findIndex(i => i.id === payload.new.id)
-        if (index !== -1) items.value[index] = payload.new
+        if (index !== -1) {
+           // If we are editing this exact item locally, maybe don't overwrite user input?
+           // For simplicity, we overwrite, assuming single user or rare conflict.
+           if (editingItem.value !== payload.new.id) {
+             items.value[index] = payload.new
+           }
+        }
       } else if (payload.eventType === 'DELETE') {
         items.value = items.value.filter(i => i.id !== payload.old.id)
       }
@@ -118,12 +160,12 @@ onUnmounted(() => {
 
 <template>
   <div class="container p-4 pb-24">
-    <header class="mb-6">
+    <header class="mb-6 fade-in">
       <h1>Lista Zakupów</h1>
     </header>
 
     <!-- Add Form -->
-    <div class="card mb-6 add-form">
+    <div class="card mb-6 add-form fade-in" style="animation-delay: 0.1s">
       <div class="flex flex-col gap-2">
         <input 
           v-model="newItemName" 
@@ -145,7 +187,7 @@ onUnmounted(() => {
     <!-- List -->
     <div v-if="loading" class="text-center py-8 text-muted">Ładowanie...</div>
     
-    <div v-else class="shopping-list">
+    <div v-else class="shopping-list fade-in" style="animation-delay: 0.2s">
       <div v-if="items.length === 0" class="text-center py-8 text-muted">
         Lista jest pusta.
       </div>
@@ -162,14 +204,35 @@ onUnmounted(() => {
               :class="{ 'is-bought': item.is_bought }"
               @click="toggleBought(item)"
             >
-              <div class="flex items-center gap-3 flex-1">
+              <div class="flex items-center gap-3 flex-1 overflow-hidden">
+                <!-- Checkbox -->
                 <div class="checkbox" :class="{ checked: item.is_bought }">
                   <span v-if="item.is_bought">✓</span>
                 </div>
-                <span class="item-name">{{ item.name }}</span>
+                
+                <!-- Content -->
+                <div v-if="editingItem === item.id" class="flex-1 mr-2">
+                   <input 
+                      v-model="editName"
+                      @click.stop
+                      @keyup.enter="saveEdit(item)"
+                      @blur="saveEdit(item)" 
+                      class="edit-input"
+                      autoFocus
+                   />
+                </div>
+                <span v-else class="item-name truncate">{{ item.name }}</span>
               </div>
               
-              <button @click.stop="deleteItem(item.id)" class="btn btn-ghost delete-btn">🗑️</button>
+              <!-- Actions -->
+              <div class="flex items-center gap-1">
+                 <button 
+                  v-if="editingItem !== item.id"
+                  @click.stop="startEdit(item)" 
+                  class="btn btn-ghost action-btn"
+                >✏️</button>
+                <button @click.stop="deleteItem(item.id)" class="btn btn-ghost action-btn destroy">✕</button>
+              </div>
             </div>
           </div>
         </template>
@@ -184,15 +247,17 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-background);
-  color: var(--color-text);
+  color: var(--color-text-main);
 }
 
 .category-title {
   color: var(--color-primary);
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   padding-left: 0.5rem;
-  border-left: 3px solid var(--color-secondary);
+  border-left: 4px solid var(--color-accent);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .item-row {
@@ -200,15 +265,23 @@ onUnmounted(() => {
   padding: 1rem;
   transition: all 0.2s;
   user-select: none;
+  border: 1px solid transparent;
+}
+
+.item-row:active {
+  transform: scale(0.98);
 }
 
 .item-row.is-bought {
-  opacity: 0.5;
-  background-color: rgba(0,0,0,0.05);
+  opacity: 0.6;
+  background-color: var(--color-background);
+  box-shadow: none;
+  border-color: var(--color-border);
 }
 
 .item-row.is-bought .item-name {
   text-decoration: line-through;
+  color: var(--color-text-muted);
 }
 
 .checkbox {
@@ -227,5 +300,34 @@ onUnmounted(() => {
 .checkbox.checked {
   background-color: var(--color-success);
   border-color: var(--color-success);
+}
+
+.action-btn {
+  padding: 0.5rem;
+  font-size: 1rem;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.item-row:hover .action-btn {
+  opacity: 1;
+}
+
+.destroy {
+  color: var(--color-danger);
+}
+
+.edit-input {
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  background: white;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

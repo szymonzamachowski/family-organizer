@@ -41,7 +41,6 @@ const filteredTasks = computed(() => {
   })
 })
 
-// Database Operations
 const fetchTasks = async () => {
   loading.value = true
   const { data, error } = await supabase
@@ -131,20 +130,20 @@ onUnmounted(() => {
 
 <template>
   <div class="container p-4 pb-24">
-    <header class="flex justify-between items-center mb-4">
+    <header class="flex justify-between items-center mb-6 fade-in">
       <h1>Obowiązki</h1>
-      <button @click="showAddForm = !showAddForm" class="btn btn-primary" style="font-size: 1.5rem; padding: 0.5rem 1rem;">
+      <button @click="showAddForm = !showAddForm" class="btn btn-primary shadow-lg" style="width: 50px; height: 50px; border-radius: 50%; font-size: 1.5rem; padding: 0;">
         {{ showAddForm ? '✕' : '+' }}
       </button>
     </header>
 
     <!-- Filters -->
-    <div class="filters flex gap-2 mb-4 overflow-x-auto pb-2">
-      <select v-model="filterAssignee">
+    <div class="filters flex gap-2 mb-6 overflow-x-auto pb-2 fade-in" style="animation-delay: 0.1s">
+      <select v-model="filterAssignee" class="filter-select">
         <option value="all">Wszyscy</option>
         <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
       </select>
-      <select v-model="filterStatus">
+      <select v-model="filterStatus" class="filter-select">
         <option value="all">Wszystkie</option>
         <option value="todo">Do zrobienia</option>
         <option value="done">Zrobione</option>
@@ -152,28 +151,31 @@ onUnmounted(() => {
     </div>
 
     <!-- Add Form -->
-    <div v-if="showAddForm" class="card mb-4 add-form">
-      <h3 class="mb-2">Nowe zadanie</h3>
+    <div v-if="showAddForm" class="card mb-6 add-form fade-in">
+      <h3 class="mb-4">Nowe zadanie</h3>
       <textarea 
         v-model="newTask.title" 
         @keydown.enter="submitOnEnter" 
         placeholder="Co trzeba zrobić?" 
-        class="mb-2 task-input" 
+        class="mb-4 input-field" 
         rows="3"
+        autofocus
       ></textarea>
-      <div class="flex gap-2 mb-2">
-        <select v-model="newTask.assigned_to">
-          <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
-        </select>
-        <input type="date" v-model="newTask.deadline" />
+      <div class="flex flex-col gap-3">
+        <div class="flex gap-2">
+            <select v-model="newTask.assigned_to" class="input-field flex-1">
+              <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
+            </select>
+            <input type="date" v-model="newTask.deadline" class="input-field flex-1" />
+        </div>
+        <button @click="addTask" class="btn btn-primary w-full shadow-md">Dodaj</button>
       </div>
-      <button @click="addTask" class="btn btn-primary w-full">Dodaj</button>
     </div>
 
     <!-- Task List -->
     <div v-if="loading" class="text-center py-8 text-muted">Ładowanie...</div>
     
-    <div v-else class="task-list">
+    <div v-else class="task-list flex flex-col gap-3 fade-in" style="animation-delay: 0.2s">
       <div v-if="filteredTasks.length === 0" class="text-center py-8 text-muted">
         Brak zadań.
       </div>
@@ -181,20 +183,29 @@ onUnmounted(() => {
       <div 
         v-for="task in filteredTasks" 
         :key="task.id" 
-        class="card task-item flex items-center justify-between"
+        class="card task-item"
         :class="{ 'task-done': task.status === 'done' }"
       >
-        <div class="flex-1" @click="toggleStatus(task)">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="badge" :class="task.assigned_to">{{ task.assigned_to }}</span>
-            <span v-if="task.deadline" class="text-sm date-badge" :class="{'overdue': new Date(task.deadline) < new Date() && task.status !== 'done'}">
-              {{ new Date(task.deadline).toLocaleDateString('pl-PL', { day: 'numeric', month: 'numeric' }) }}
-            </span>
-          </div>
-          <h3 class="task-title">{{ task.title }}</h3>
+        <div class="flex items-start gap-3"> 
+           <!-- Custom Checkbox -->
+           <div class="status-indicator" @click="toggleStatus(task)">
+              <div class="checkbox-circle" :class="{ checked: task.status === 'done' }">
+                 <span v-if="task.status === 'done'">✓</span>
+              </div>
+           </div>
+
+           <div class="flex-1 content-area" @click="toggleStatus(task)">
+             <div class="flex items-center gap-2 mb-1 flex-wrap">
+                <span class="badge" :class="task.assigned_to">{{ task.assigned_to }}</span>
+                <span v-if="task.deadline" class="text-sm date-badge" :class="{'overdue': new Date(task.deadline) < new Date() && task.status !== 'done'}">
+                  🗓 {{ new Date(task.deadline).toLocaleDateString('pl-PL', { day: 'numeric', month: 'numeric' }) }}
+                </span>
+             </div>
+             <h3 class="task-title">{{ task.title }}</h3>
+           </div>
+            
+           <button @click="deleteTask(task.id)" class="btn btn-ghost delete-btn">🗑️</button>
         </div>
-        
-        <button @click="deleteTask(task.id)" class="btn btn-ghost delete-btn">🗑️</button>
       </div>
     </div>
   </div>
@@ -202,59 +213,86 @@ onUnmounted(() => {
 
 <style scoped>
 .task-item {
-  cursor: pointer;
-  transition: all 0.2s;
-  border-left: 4px solid var(--color-primary);
+  padding: 1rem;
+  border-left: none; /* override old style */
+  margin-bottom: 0;
+  transition: transform 0.2s;
 }
 
-.task-item.task-done {
-  opacity: 0.6;
-  border-left-color: var(--color-success);
+.task-item:active {
+  transform: scale(0.98);
+}
+
+.status-indicator {
+  padding-top: 0.25rem;
+  cursor: pointer;
+}
+
+.checkbox-circle {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.2s;
+}
+
+.checkbox-circle.checked {
+  background: var(--color-success);
+  border-color: var(--color-success);
 }
 
 .task-item.task-done .task-title {
   text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.task-item.task-done {
+   opacity: 0.6;
 }
 
 .badge {
-  font-size: 0.75rem;
-  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 99px;
-  background: #e2e8f0;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.badge.Tata { background: #dbeafe; color: #1e40af; }
-.badge.Mama { background: #fce7f3; color: #9d174d; }
-.badge.Gosia { background: #dcfce7; color: #166534; }
-.badge.Szymon { background: #ffedd5; color: #9a3412; }
+/* Updated Colors for badges to better match new palette */
+.badge.Tata { background: #e0e7ff; color: #4338ca; }
+.badge.Mama { background: #fce7f3; color: #be185d; }
+.badge.Gosia { background: #dcfce7; color: #15803d; }
+.badge.Szymon { background: #ffedd5; color: #c2410c; }
 
 .date-badge {
   color: var(--color-text-muted);
+  font-weight: 500;
 }
 .date-badge.overdue {
   color: var(--color-danger);
-  font-weight: bold;
+  font-weight: 700;
 }
 
-.delete-btn {
-  padding: 0.5rem;
-  margin-left: 0.5rem;
-}
-
-.task-input {
+.input-field {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
   background: var(--color-background);
-  color: var(--color-text);
-  font-size: 1.1rem;
-  resize: vertical;
+  color: var(--color-text-main);
+  font-size: 1rem;
 }
 
-.task-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
+.filter-select {
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  min-width: 120px;
 }
 </style>

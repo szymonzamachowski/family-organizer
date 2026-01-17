@@ -18,12 +18,6 @@ const getDayName = (date) => {
 const getSaturday = (date) => {
   const d = new Date(date)
   const day = d.getDay() // 0=Sun, 6=Sat
-  // Calculate difference to get previous Saturday (or today if Saturday)
-  // Sat(6) -> 0
-  // Sun(0) -> 1
-  // Mon(1) -> 2
-  // ...
-  // Fri(5) -> 6
   const diff = (day + 1) % 7
   d.setDate(d.getDate() - diff)
   return d
@@ -47,7 +41,7 @@ const generateWeekDocs = (startDate) => {
     endDate: new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 6),
     label: `${startDate.toLocaleDateString('pl-PL', {day: 'numeric', month: 'numeric'})} - ${new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 6).toLocaleDateString('pl-PL', {day: 'numeric', month: 'numeric'})}`,
     days: days,
-    isOpen: true // default open?
+    isOpen: true 
   }
 }
 
@@ -154,37 +148,37 @@ onUnmounted(() => {
 
 <template>
   <div class="container p-4 pb-24">
-    <header class="mb-6">
+    <header class="mb-6 fade-in">
       <h1>Obiady</h1>
     </header>
 
     <div v-if="loading" class="text-center py-8 text-muted">Ładowanie...</div>
     
-    <div v-else class="weeks-list flex flex-col gap-4">
+    <div v-else class="weeks-list flex flex-col gap-4 fade-in" style="animation-delay: 0.1s">
       <div v-for="(week, index) in weeks" :key="index" class="week-group">
         
         <button 
           @click="toggleWeek(week)"
-          class="flex items-center justify-between w-full p-3 bg-surface rounded-lg mb-2 shadow-sm font-bold text-lg"
-          :class="{'text-primary': index === 0}"
+          class="flex items-center justify-between w-full p-4 card mb-2 font-bold text-lg hover:bg-white"
+          :class="{'text-primary ring-2 ring-primary ring-opacity-10': index === 0}"
         >
           <span>{{ week.label }}</span>
-          <span>{{ week.isOpen ? '▼' : '►' }}</span>
+          <span class="transform transition-transform" :class="{ 'rotate-180': week.isOpen }">▼</span>
         </button>
 
         <div v-if="week.isOpen" class="week-days flex flex-col gap-3 pl-2">
           <div 
             v-for="day in week.days" 
             :key="day.dateStr" 
-            class="card p-3"
+            class="card p-4 meal-day"
           >
-            <label class="block text-sm font-bold mb-1 text-primary">{{ day.dayName }}</label>
+            <label class="block text-sm font-bold mb-2 text-primary uppercase tracking-wide">{{ day.dayName }}</label>
             <input 
               v-model="day.dish_name" 
               @blur="updateMeal(day)"
               @keydown.enter="$event.target.blur()"
               placeholder="Co dobrego?" 
-              class="w-full bg-transparent border-b border-gray-600 focus:border-primary outline-none py-1"
+              class="meal-input"
             />
           </div>
         </div>
@@ -194,10 +188,32 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.text-primary {
-  color: var(--color-primary);
+.meal-day {
+  transition: transform 0.2s;
 }
-.bg-surface {
-  background-color: var(--color-surface);
+
+.meal-day:active {
+  transform: scale(0.99);
+}
+
+.meal-input {
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid var(--color-border);
+  border-radius: 0;
+  padding: 0.5rem 0;
+  font-size: 1.1rem;
+  color: var(--color-text-main);
+}
+
+.meal-input:focus {
+  outline: none;
+  border-bottom-color: var(--color-primary);
+  box-shadow: none;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
 }
 </style>
