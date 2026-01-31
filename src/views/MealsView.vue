@@ -147,7 +147,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="container p-4 pb-24">
+  <div class="container p-4">
     <header class="mb-6 fade-in">
       <h1>Obiady</h1>
     </header>

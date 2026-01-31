@@ -35,13 +35,11 @@ const navItems = [
 
 <style scoped>
 .bottom-nav {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
+  /* Positioned in flow now */
   width: 90%;
   max-width: 500px;
-  background: var(--color-surface-translucent); /* Glassmorphism */
+  background: var(--color-surface-translucent);
+  /* Glassmorphism */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: var(--radius-xl);
@@ -49,6 +47,9 @@ const navItems = [
   border: 1px solid rgba(255, 255, 255, 0.5);
   z-index: 100;
   padding: 0.5rem;
+  margin: 1rem auto 1.5rem auto;
+  flex-shrink: 0;
+  /* Prevent shrinking */
 }
 
 .nav-content {

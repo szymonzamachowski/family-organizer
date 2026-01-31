@@ -16,18 +16,28 @@ const showNav = computed(() => route.name !== 'welcome' && route.name !== 'home'
   </div>
 </template>
 
+<style scoped>
 .app-layout {
-  min-height: 100vh;
+  height: 100dvh;
+  /* Use dvh for better mobile support */
+  width: 100%;
   background-color: var(--color-background);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .main-content {
   flex: 1;
   width: 100%;
+  overflow-y: auto;
+  /* Internal scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Smooth scroll on iOS */
+  padding-bottom: 2rem;
+  /* Default padding */
 }
 
-.main-content.with-nav {
-  padding-bottom: 140px; /* More space for floating nav */
-}
+/* No specific padding needed for nav state anymore as nav is in flow */
+.main-content.with-nav {}
+</style>
