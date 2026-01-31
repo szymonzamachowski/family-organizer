@@ -29,5 +29,5 @@ const showNav = computed(() => route.name !== 'welcome' && route.name !== 'home'
 }
 
 .main-content.with-nav {
-  padding-bottom: 100px; /* More space for floating nav */
+  padding-bottom: 140px; /* More space for floating nav */
 }
